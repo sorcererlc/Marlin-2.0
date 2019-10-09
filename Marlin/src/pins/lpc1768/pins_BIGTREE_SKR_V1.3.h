@@ -301,3 +301,7 @@
  *   P0_27  (57) (Open collector)
  *   P0_28  (58) (Open collector)
  */
+
+#if ENABLED(PINDA_THERMISTOR)
+  #define TEMP_PINDA_PIN  TEMP_1_PIN
+#endif

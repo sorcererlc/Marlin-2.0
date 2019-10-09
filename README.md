@@ -1,4 +1,13 @@
-﻿# Marlin 3D Printer Firmware
+﻿# Customization notes
+Build target: Bigtreetech SKR1.3
+Standard 12864 LCD
+Using E1 for second Z axis motor
+TMC2130 for X, Y, E0
+TMC2208 for Z, Z2
+PINDA probe (experimental)
+
+
+# Marlin 3D Printer Firmware
 
 [![Build Status](https://travis-ci.org/MarlinFirmware/Marlin.svg?branch=bugfix-2.0.x)](https://travis-ci.org/MarlinFirmware/Marlin)
 ![GitHub](https://img.shields.io/github/license/marlinfirmware/marlin.svg)

@@ -23,6 +23,11 @@
 
 #define REVERSE_TEMP_SENSOR_RANGE
 
+#if THERMISTORPINDA == 20
+  #define HEATER_PINDA_RAW_HI_TEMP 16383
+  #define HEATER_PINDA_RAW_LO_TEMP 0
+#endif
+
 // Pt100 with INA826 amp on Ultimaker v2.0 electronics
 const short temptable_20[][2] PROGMEM = {
   { OV(  0),    0 },

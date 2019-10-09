@@ -48,7 +48,7 @@
 // Identifiers for other heaters
 typedef enum : int8_t {
   INDEX_NONE = -4,
-  H_REDUNDANT, H_CHAMBER, H_BED,
+  H_PINDA, H_CHAMBER, H_BED,
   H_E0, H_E1, H_E2, H_E3, H_E4, H_E5
 } heater_ind_t;
 
@@ -99,6 +99,10 @@ enum ADCSensorState : char {
   #endif
   #if HAS_TEMP_CHAMBER
     PrepareTemp_CHAMBER, MeasureTemp_CHAMBER,
+  #endif
+  #if HAS_TEMP_PINDA
+    PrepareTemp_PINDA,
+    MeasureTemp_PINDA,
   #endif
   #if HAS_TEMP_ADC_1
     PrepareTemp_1, MeasureTemp_1,
@@ -192,6 +196,12 @@ struct PIDHeaterInfo : public HeaterInfo {
   typedef heater_info_t chamber_info_t;
 #elif HAS_TEMP_CHAMBER
   typedef temp_info_t chamber_info_t;
+#endif
+#if HAS_TEMP_PINDA
+  typedef struct PindaInfo : public HeaterInfo {
+    uint16_t remainder;
+    bool first_sample;
+  } pinda_info_t;
 #endif
 
 // Heater idle handling
@@ -382,6 +392,10 @@ class Temperature {
       #endif
     #endif
 
+    #if HAS_TEMP_PINDA
+      static pinda_info_t temp_pinda;
+    #endif
+
     #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
       static uint8_t consecutive_low_temperature_error[HOTENDS];
     #endif
@@ -458,6 +472,9 @@ class Temperature {
     #endif
     #if HAS_TEMP_CHAMBER
       static float analog_to_celsius_chamber(const int raw);
+    #endif
+    #if HAS_TEMP_PINDA
+      static float analog_to_celsius_pinda(const int raw);
     #endif
 
     #if FAN_COUNT > 0
@@ -659,6 +676,17 @@ class Temperature {
         static bool wait_for_chamber(const bool no_wait_for_cooling=true);
       #endif
     #endif // HAS_TEMP_CHAMBER
+
+    #if HAS_TEMP_PINDA
+      #if ENABLED(SHOW_TEMP_ADC_VALUES)
+        FORCE_INLINE static int16_t rawPindaTemp() { return Temperature::temp_pinda.raw; }
+      #endif
+      FORCE_INLINE static float degPinda() { return Temperature::temp_pinda.celsius; }
+      FORCE_INLINE static int16_t degTargetPinda()  { return Temperature::temp_pinda.target; }
+      static void setTargetPinda(const int16_t celsius) {
+        Temperature::temp_pinda.target = celsius;
+      }
+    #endif // HAS_TEMP_PINDA
 
     #if WATCH_CHAMBER
       static void start_watching_chamber();

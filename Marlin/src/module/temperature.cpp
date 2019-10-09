@@ -236,6 +236,10 @@ Temperature thermalManager;
   #endif // HAS_HEATED_CHAMBER
 #endif // HAS_TEMP_CHAMBER
 
+#if HAS_TEMP_PINDA
+  pinda_info_t Temperature::temp_pinda = { 0, 0, 0.0, 0, 0, 0, true };
+#endif // HAS_TEMP_PINDA
+
 // Initialized by settings.load()
 #if ENABLED(PIDTEMP)
   //hotend_pid_t Temperature::pid[HOTENDS];
@@ -1476,6 +1480,22 @@ void Temperature::manage_heater() {
   }
 #endif // HAS_TEMP_CHAMBER
 
+#if HAS_TEMP_PINDA
+  // Derived from RepRap FiveD extruder::getTemperature()
+  // For chamber temperature measurement.
+  float Temperature::analog_to_celsius_pinda(const int raw) {
+    #if ENABLED(HEATER_PINDA_USES_THERMISTOR)
+      SCAN_THERMISTOR_TABLE(PINDATEMPTABLE, PINDATEMPTABLE_LEN);
+    #elif ENABLED(HEATER_PINDA_USES_AD595)
+      return TEMP_AD595(raw);
+    #elif ENABLED(HEATER_PINDA_USES_AD8495)
+      return TEMP_AD8495(raw);
+    #else
+      return 0;
+    #endif
+  }
+#endif // HAS_TEMP_PINDA
+
 /**
  * Get the raw values into the actual temperatures.
  * The raw values are created in interrupt context,
@@ -1671,6 +1691,9 @@ void Temperature::init() {
   #endif
   #if HAS_TEMP_CHAMBER
     HAL_ANALOG_SELECT(TEMP_CHAMBER_PIN);
+  #endif
+  #if HAS_TEMP_PINDA
+    HAL_ANALOG_SELECT(TEMP_PINDA_PIN);
   #endif
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
     HAL_ANALOG_SELECT(FILWIDTH_PIN);
@@ -2177,6 +2200,28 @@ void Temperature::set_current_temp_raw() {
     temp_chamber.update();
   #endif
 
+  #if HAS_TEMP_PINDA
+    #if ENABLED(PINDA_TEMP_SMOOTHING) && (PINDA_TEMP_SMOOTHING_DIV_LOG2 > 0)
+      const uint16_t remainder_mask = (1 << PINDA_TEMP_SMOOTHING_DIV_LOG2)-1;
+
+      if (Temperature::temp_pinda.first_sample) {
+        Temperature::temp_pinda.celsius = Temperature::temp_pinda.raw;
+        Temperature::temp_pinda.first_sample = false;
+      }
+      else {
+        int32_t full_precision = 
+          (int32_t)Temperature::temp_pinda.celsius * remainder_mask 
+          + Temperature::temp_pinda.raw 
+          + Temperature::temp_pinda.remainder;
+
+        temp_pinda.celsius = (int16_t)(full_precision >> PINDA_TEMP_SMOOTHING_DIV_LOG2);
+        Temperature::temp_pinda.remainder = (uint16_t)(full_precision & remainder_mask);
+      }
+    #else
+      (int32_t)Temperature::temp_pinda.celsius = Temperature::temp_pinda.raw;
+    #endif
+  #endif
+
   #if HAS_JOY_ADC_X
     joystick.x.update();
   #endif
@@ -2213,6 +2258,10 @@ void Temperature::readings_ready() {
 
   #if HAS_TEMP_CHAMBER
     temp_chamber.reset();
+  #endif
+
+  #if HAS_TEMP_PINDA
+    temp_pinda.raw = 0;
   #endif
 
   #if HAS_JOY_ADC_X
@@ -2696,6 +2745,11 @@ void Temperature::isr() {
       case MeasureTemp_CHAMBER: ACCUMULATE_ADC(temp_chamber); break;
     #endif
 
+    #if HAS_TEMP_PINDA
+      case PrepareTemp_PINDA: HAL_START_ADC(TEMP_PINDA_PIN); break;
+      case MeasureTemp_PINDA: ACCUMULATE_ADC(temp_pinda); break;
+    #endif
+
     #if HAS_TEMP_ADC_1
       case PrepareTemp_1: HAL_START_ADC(TEMP_1_PIN); break;
       case MeasureTemp_1: ACCUMULATE_ADC(temp_hotend[1]); break;
@@ -2806,6 +2860,9 @@ void Temperature::isr() {
       #if HAS_TEMP_CHAMBER
         case H_CHAMBER: k = 'C'; break;
       #endif
+      #if HAS_TEMP_PINDA
+        case H_PINDA: k = 'P'; break;
+      #endif
       #if HAS_TEMP_HOTEND
         default: k = 'T'; break;
         #if HAS_HEATED_BED
@@ -2874,6 +2931,14 @@ void Temperature::isr() {
         , H_CHAMBER
       );
     #endif // HAS_TEMP_CHAMBER
+    #if HAS_TEMP_PINDA
+      print_heater_state(degPinda(), degTargetPinda()
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          , rawPindaTemp()
+        #endif
+        , H_PINDA // PINDA
+      );
+    #endif // HAS_TEMP_PINDA
     #if HOTENDS > 1
       HOTEND_LOOP() print_heater_state(degHotend(e), degTargetHotend(e)
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
