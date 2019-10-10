@@ -512,6 +512,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         #endif
       #endif
 
+      #if ENABLED(PINDA_THERMISTOR)
+        case 199: M199(); break;
+      #endif
+
       #if DISABLED(NO_VOLUMETRICS)
         case 200: M200(); break;                                  // M200: Set filament diameter, E to cubic units
       #endif

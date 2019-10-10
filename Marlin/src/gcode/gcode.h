@@ -159,6 +159,7 @@
  * M166 - Set the Gradient Mix for the mixing extruder. (Requires GRADIENT_MIX)
  * M190 - S<temp> Wait for bed current temp to reach target temp. ** Wait only when heating! **
  *        R<temp> Wait for bed current temp to reach target temp. ** Wait for heating or cooling. **
+ * M199 - P<temp> Wait for PINDA V2 current temp to reach target temp.
  * M200 - Set filament diameter, D<diameter>, setting E axis units to cubic. (Use S0 to revert to linear units.)
  * M201 - Set max acceleration in units/s^2 for print moves: "M201 X<accel> Y<accel> Z<accel> E<accel>"
  * M202 - Set max acceleration in units/s^2 for travel moves: "M202 X<accel> Y<accel> Z<accel> E<accel>" ** UNUSED IN MARLIN! **
@@ -648,6 +649,10 @@ private:
     #if ENABLED(GRADIENT_MIX)
       static void M166();
     #endif
+  #endif
+
+  #if ENABLED(PINDA_THERMISTOR)
+    static void M199();
   #endif
 
   static void M200();
