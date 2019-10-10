@@ -201,6 +201,7 @@ struct PIDHeaterInfo : public HeaterInfo {
   typedef struct PindaInfo : public HeaterInfo {
     uint16_t remainder;
     bool first_sample;
+    inline void reset() { acc = 0; first_sample = true; }
   } pinda_info_t;
 #endif
 
@@ -679,12 +680,12 @@ class Temperature {
 
     #if HAS_TEMP_PINDA
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        FORCE_INLINE static int16_t rawPindaTemp() { return Temperature::temp_pinda.raw; }
+        FORCE_INLINE static int16_t rawPindaTemp() { return temp_pinda.raw; }
       #endif
-      FORCE_INLINE static float degPinda() { return Temperature::temp_pinda.celsius; }
-      FORCE_INLINE static int16_t degTargetPinda()  { return Temperature::temp_pinda.target; }
+      FORCE_INLINE static float degPinda() { return temp_pinda.celsius; }
+      FORCE_INLINE static int16_t degTargetPinda()  { return temp_pinda.target; }
       static void setTargetPinda(const int16_t celsius) {
-        Temperature::temp_pinda.target = celsius;
+        temp_pinda.target = celsius;
       }
     #endif // HAS_TEMP_PINDA
 

@@ -1485,7 +1485,7 @@ void Temperature::manage_heater() {
   // For chamber temperature measurement.
   float Temperature::analog_to_celsius_pinda(const int raw) {
     #if ENABLED(HEATER_PINDA_USES_THERMISTOR)
-      SCAN_THERMISTOR_TABLE(PINDATEMPTABLE, PINDATEMPTABLE_LEN);
+      SCAN_THERMISTOR_TABLE(PINDA_TEMPTABLE, PINDA_TEMPTABLE_LEN);
     #elif ENABLED(HEATER_PINDA_USES_AD595)
       return TEMP_AD595(raw);
     #elif ENABLED(HEATER_PINDA_USES_AD8495)
@@ -1517,6 +1517,9 @@ void Temperature::updateTemperaturesFromRawValues() {
   #endif
   #if HAS_TEMP_CHAMBER
     temp_chamber.celsius = analog_to_celsius_chamber(temp_chamber.raw);
+  #endif
+  #if HAS_TEMP_PINDA
+    temp_pinda.celsius = analog_to_celsius_pinda(temp_pinda.raw);
   #endif
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
     redundant_temperature = analog_to_celsius_hotend(redundant_temperature_raw, 1);
@@ -2205,7 +2208,7 @@ void Temperature::set_current_temp_raw() {
       const uint16_t remainder_mask = (1 << PINDA_TEMP_SMOOTHING_DIV_LOG2)-1;
 
       if (Temperature::temp_pinda.first_sample) {
-        Temperature::temp_pinda.celsius = Temperature::temp_pinda.raw;
+        temp_pinda.update();
         Temperature::temp_pinda.first_sample = false;
       }
       else {
@@ -2218,9 +2221,9 @@ void Temperature::set_current_temp_raw() {
         Temperature::temp_pinda.remainder = (uint16_t)(full_precision & remainder_mask);
       }
     #else
-      (int32_t)Temperature::temp_pinda.celsius = Temperature::temp_pinda.raw;
+      temp_pinda.update();
     #endif
-  #endif
+  #endif // HAS_TEMP_PINDA
 
   #if HAS_JOY_ADC_X
     joystick.x.update();
@@ -2261,7 +2264,7 @@ void Temperature::readings_ready() {
   #endif
 
   #if HAS_TEMP_PINDA
-    temp_pinda.raw = 0;
+    temp_pinda.reset();
   #endif
 
   #if HAS_JOY_ADC_X
