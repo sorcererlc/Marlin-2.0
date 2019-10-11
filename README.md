@@ -1,9 +1,14 @@
-﻿# Customization notes
+# Customization notes
 Build target: Bigtreetech SKR1.3
+
 Standard 12864 LCD
+
 Using E1 for second Z axis motor
+
 TMC2130 for X, Y, E0
+
 TMC2208 for Z, Z2
+
 PINDA probe (experimental)
 
 
