@@ -9,7 +9,7 @@ TMC2130 for X, Y, E0
 
 TMC2208 for Z, Z2
 
-PINDA probe (experimental)
+PINDA V2 probe. Still experimental. Ported 1:1 from [PrusaOwners](https://github.com/PrusaOwners/Marlin/tree/bugfix-2.0.x) fork and updated to current Marlin. M199 works to wait for probe to reach a certain temp but I'm not very happy with the "do{}while()" way it does this.
 
 
 # Marlin 3D Printer Firmware
