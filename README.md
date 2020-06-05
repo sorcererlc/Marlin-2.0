@@ -1,3 +1,6 @@
+# Deprecated
+This repository is now deprecated and will be archived. The latest tests and configs can be found in [this repository](https://github.com/sorcererlc/Marlin) which is forked from vanilla Marlin.
+
 # Customization notes
 Build target: Bigtreetech SKR1.3
 
